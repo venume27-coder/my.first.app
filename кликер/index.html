@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>НЕОНОВЫЙ ОСКОЛОК // КИБЕРПАНК IDLE-ЯДРО</title>
+    <!-- Custom Cyber Typography Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="cyber">
+    <div class="stars-bg"></div>
+    <div class="scanlines"></div>
+
+    <div class="game-container">
+        <!-- LEFT COLUMN: THE CORE (INTERACTIVE ACTIVE PLAY) -->
+        <main class="core-pane glass-panel">
+            <header class="pane-header">
+                <div class="sys-label">ОС_СИСТЕМЫ // НЕОНОВЫЙ_ОСКОЛОК</div>
+                <div class="sys-status neon-green-pulse">● ЯДРО_ОНЛАЙН</div>
+            </header>
+
+            <div class="currency-panel">
+                <div class="credits-count-wrapper">
+                    <span class="digital-label">НЕЙРОКРЕДИТЫ</span>
+                    <h1 id="credits-display" class="neon-text-blue animate-pulse">0</h1>
+                </div>
+                <div class="cps-wrapper">
+                    <span class="cps-label">ПАССИВНЫЙ ДОХОД (К/С)</span>
+                    <div class="cps-value-row">
+                        <span class="cps-icon">⚡</span>
+                        <span id="cps-display" class="neon-text-pink">0</span>
+                        <span class="cps-unit">/с</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-progress-container">
+                <div class="level-header">
+                    <span id="level-display" class="level-badge font-orbitron">Ур. 1</span>
+                    <span id="exp-text" class="exp-nums">0 / 100 XP</span>
+                </div>
+                <div class="progress-track">
+                    <div id="exp-progress-bar" class="progress-fill"></div>
+                </div>
+            </div>
+
+            <!-- Active Buff Badges -->
+            <div id="buff-display-container" class="buff-container">
+                <!-- Injected via JavaScript -->
+            </div>
+
+            <!-- THE CORE ROTATING REACTOR -->
+            <div class="core-reactor-wrapper">
+                <div id="click-core" class="core-reactor">
+                    <svg id="core-rings" viewBox="0 0 200 200">
+                        <!-- Tech circles and notches -->
+                        <circle cx="100" cy="100" r="92" stroke="rgba(0, 240, 255, 0.1)" stroke-width="1" fill="none" />
+                        <!-- Outer rotating dash circle -->
+                        <circle cx="100" cy="100" r="85" stroke="#00f0ff" stroke-width="2.5" stroke-dasharray="12 25" fill="none" class="ring-outer" />
+                        <!-- Inner counter-rotating dash circle -->
+                        <circle cx="100" cy="100" r="70" stroke="#ff007f" stroke-width="2" stroke-dasharray="40 12" fill="none" class="ring-inner" />
+                        <!-- High detail notches -->
+                        <circle cx="100" cy="100" r="58" stroke="rgba(255, 255, 255, 0.2)" stroke-width="1" stroke-dasharray="5 3" fill="none" />
+                        <!-- Core fill -->
+                        <circle cx="100" cy="100" r="45" fill="rgba(11, 9, 20, 0.9)" stroke="#39ff14" stroke-width="2" />
+                    </svg>
+                    <div class="core-center-glow">
+                        <img src="img/core_reactor.jpg" class="core-icon-img" alt="Ядро">
+                    </div>
+                </div>
+                <div class="click-instruction">НАЖМИТЕ НА ЯДРО ДЛЯ ПЕРЕЗАГРУЗКИ МАССИВОВ ДАННЫХ</div>
+            </div>
+
+            <footer class="pane-footer font-rajdhani">
+                <span>СЕКТОР: 7-G</span>
+                <span>ВЕРСИЯ_ОС: 4.89</span>
+            </footer>
+        </main>
+
+        <!-- RIGHT COLUMN: THE CONTROL PANEL (SHOPS, DAILY, WHEEL, STATS) -->
+        <aside class="control-pane glass-panel">
+            <!-- Tabs Menu Header -->
+            <nav class="tabs-header font-orbitron">
+                <button class="tab-btn active" data-tab="upgrades">⚡ ОСКОЛКИ</button>
+                <button class="tab-btn" data-tab="nodes">📡 УЗЛЫ</button>
+                <button class="tab-btn" data-tab="wheel">🎡 КОЛЕСО</button>
+                <button class="tab-btn" data-tab="daily">📅 НАГРАДЫ</button>
+                <button class="tab-btn" data-tab="achievements">🏆 БАЗА</button>
+                <button class="tab-btn" data-tab="stats">📊 ДАННЫЕ</button>
+                <button class="tab-btn" data-tab="prestige">💎 СБРОС</button>
+                <button class="tab-btn" data-tab="settings">⚙️ СИС</button>
+            </nav>
+
+            <!-- Tabs Content Wrapper -->
+            <div class="tabs-content">
+                <!-- 1. UPGRADES TAB -->
+                <div id="upgrades-tab" class="tab-content active">
+                    <h2 class="tab-title">УЛУЧШЕНИЯ ОСКОЛКОВ ЯДРА</h2>
+                    <p class="tab-subtitle">Обновите аппаратное обеспечение, чтобы увеличить мощность извлечения данных при клике.</p>
+                    <div id="shop-upgrades-container" class="shop-grid">
+                        <!-- Dynamic Upgrades Load -->
+                    </div>
+                </div>
+
+                <!-- 2. AUTOCLICKERS (NODES) TAB -->
+                <div id="nodes-tab" class="tab-content">
+                    <h2 class="tab-title">МАЙНИНГОВЫЕ УЗЛЫ</h2>
+                    <p class="tab-subtitle">Развертывайте ботнеты, нейросети и серверные стойки для автоматического сбора кредитов.</p>
+                    <div id="shop-autoclickers-container" class="shop-grid">
+                        <!-- Dynamic Nodes Load -->
+                    </div>
+                </div>
+
+                <!-- 3. WHEEL OF FORTUNE TAB -->
+                <div id="wheel-tab" class="tab-content text-center">
+                    <h2 class="tab-title">КОЛЕСО НЕОНА</h2>
+                    <p class="tab-subtitle">Перегрузите квантовое ядро вероятностей для получения случайных бонусов и кредитных наград.</p>
+                    
+                    <div class="wheel-area">
+                        <div class="wheel-pointer">▼</div>
+                        <canvas id="wheel-canvas" width="280" height="280"></canvas>
+                    </div>
+
+                    <div class="wheel-controls">
+                        <div id="wheel-free-lbl" class="wheel-status neon-green">Бесплатное вращение готово!</div>
+                        <button id="wheel-spin-btn" class="sys-btn fill-neon-blue">
+                            ЗАПУСТИТЬ ЯДРО (<span id="wheel-spin-cost">БЕСПЛАТНО</span>)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. DAILY REWARDS TAB -->
+                <div id="daily-tab" class="tab-content">
+                    <h2 class="tab-title">ЕЖЕДНЕВНЫЕ СЕАНСЫ СВЯЗИ</h2>
+                    <p class="tab-subtitle">Подключайтесь к мейнфрейму каждый день, чтобы получать прогрессирующие нейрокеши.</p>
+                    
+                    <div id="daily-grid" class="daily-calendar-grid">
+                        <!-- Dynamic Daily Calendar Load -->
+                    </div>
+
+                    <div class="daily-controls">
+                        <button id="daily-claim-btn" class="sys-btn fill-neon-green" disabled>ЗАБРАТЬ НАГРАДУ</button>
+                        <div id="daily-countdown" class="daily-status-cd">Следующая награда через: 24:00:00</div>
+                    </div>
+                </div>
+
+                <!-- 5. ACHIEVEMENTS TAB -->
+                <div id="achievements-tab" class="tab-content">
+                    <h2 class="tab-title">УСПЕШНЫЕ ВЗЛОМЫ</h2>
+                    <p class="tab-subtitle">Достигайте рубежей в системе для активации постоянного глобального множителя майнинга (<span id="ach-multiplier-val" class="neon-text-blue">+0%</span>).</p>
+                    <div class="ach-summary">
+                        РАЗБЛОКИРОВАНО СЕКТОРОВ: <span id="ach-unlocked-count" class="neon-text-green">0</span> / <span id="ach-total-count">0</span>
+                    </div>
+                    <div id="achievements-grid" class="ach-grid">
+                        <!-- Dynamic Achievements Load -->
+                    </div>
+                </div>
+
+                <!-- 6. STATISTICS TAB -->
+                <div id="stats-tab" class="tab-content">
+                    <h2 class="tab-title">ХАРАКТЕРИСТИКИ ТЕРМИНАЛА</h2>
+                    <p class="tab-subtitle">Прямая диагностика состояния вашего разогнанного ядра.</p>
+                    
+                    <div class="terminal-stats font-rajdhani">
+                        <div class="terminal-line"><span class="lbl">> ТЕКУЩИЙ УРОВЕНЬ:</span> <span id="stat-level" class="val">1</span></div>
+                        <div class="terminal-line"><span class="lbl">> ВСЕГО КЛИКОВ:</span> <span id="stat-total-clicks" class="val">0</span></div>
+                        <div class="terminal-line"><span class="lbl">> ВСЕГО ДОБЫТО КРЕДИТОВ:</span> <span id="stat-total-earned" class="val">0</span></div>
+                        <div class="terminal-line"><span class="lbl">> СКОРОСТЬ МАЙНИНГА (CPS):</span> <span id="stat-cps" class="val">0</span> к/с</div>
+                        <div class="terminal-line"><span class="lbl">> МАКС. ЗАПИСАННЫЙ CPS:</span> <span id="stat-max-cps" class="val">0</span> к/с</div>
+                        <div class="terminal-line"><span class="lbl">> КУПЛЕНО МОДУЛЕЙ И УЗЛОВ:</span> <span id="stat-upgrades-bought" class="val">0</span></div>
+                        <div class="terminal-line"><span class="lbl">> ВРАЩЕНИЙ КОЛЕСА НЕОНА:</span> <span id="stat-wheel-spins" class="val">0</span></div>
+                        <div class="terminal-line"><span class="lbl">> ПОЙМАНО СИСТЕМНЫХ ГЛИЧЕЙ:</span> <span id="stat-events-clicked" class="val">0</span></div>
+                        <div class="terminal-line"><span class="lbl">> ВРЕМЯ РАБОТЫ СЕТИ:</span> <span id="stat-time-played" class="val">0с</span></div>
+                        <div class="terminal-line"><span class="lbl">> РАЗБЛОКИРОВАНО СЕКРЕТОВ:</span> <span id="stat-achievements" class="val">0</span></div>
+                    </div>
+                </div>
+
+                <!-- 6.5. PRESTIGE (HARD REBOOT) TAB -->
+                <div id="prestige-tab" class="tab-content">
+                    <h2 class="tab-title">НЕЙРОННАЯ ПЕРЕЗАГРУЗКА</h2>
+                    <p class="tab-subtitle">Очистите активную память ядра для компиляции постоянных осколков Наноядер (💎). Это сбросит текущие кредиты, улучшения и узлы, но даст постоянный множитель +2% к силе клика и CPS за каждое Наноядро.</p>
+                    
+                    <div class="prestige-panel">
+                        <div class="prestige-stats-row">
+                            <div class="prestige-stat-box">
+                                <span class="label">ТЕКУЩИЕ НАНОЯДРА</span>
+                                <span id="prestige-nanocores" class="val neon-text-blue">0</span>
+                            </div>
+                            <div class="prestige-stat-box">
+                                <span class="label">ДАННЫЕ ПРИ СБРОСЕ</span>
+                                <span id="prestige-pending" class="val neon-text-green">+0</span>
+                            </div>
+                        </div>
+                        <button id="prestige-reboot-btn" class="sys-btn fill-neon-pink full-width mt-10" disabled>
+                            ИНИЦИИРОВАТЬ СБРОС (Требуется 10 уровень)
+                        </button>
+                    </div>
+
+                    <h3 class="section-title font-orbitron mt-20">ПОСТОЯННЫЕ МОДИФИКАЦИИ ЯДРА</h3>
+                    <div id="prestige-upgrades-container" class="shop-grid mt-10">
+                        <!-- Dynamic Prestige Upgrades -->
+                    </div>
+                </div>
+
+                <!-- 7. SYSTEM SETTINGS TAB -->
+                <div id="settings-tab" class="tab-content">
+                    <h2 class="tab-title">КОНФИГУРАЦИЯ СИСТЕМЫ</h2>
+                    <p class="tab-subtitle">Настройка аудиовизуальных параметров ядра.</p>
+                    
+                    <div class="settings-form">
+                        <!-- Audio settings -->
+                        <div class="settings-group">
+                            <label class="setting-label">ЛИМИТЕР УСИЛЕНИЯ АУДИО</label>
+                            <input type="range" id="volume-range" class="volume-slider" min="0" max="1" step="0.05" value="0.5">
+                            <div class="settings-row mt-10">
+                                <button id="toggle-mute-btn" class="sys-btn secondary half-width">🔊 Выключить звуки</button>
+                                <button id="toggle-music-btn" class="sys-btn secondary half-width">🎵 Включить музыку</button>
+                            </div>
+                        </div>
+
+                        <!-- Graphics/Animation settings -->
+                        <div class="settings-group">
+                            <label class="setting-label">ВИЗУАЛЬНАЯ ПЕРЕГРУЗКА</label>
+                            <p class="setting-hint">Отключает ресурсоемкие эффекты частиц и вращения CSS в случае задержек.</p>
+                            <button id="toggle-anim-btn" class="sys-btn secondary">✨ Отключить эффекты</button>
+                        </div>
+
+                        <!-- Themes -->
+                        <div class="settings-group">
+                            <label class="setting-label">ЦВЕТ ИНТЕРФЕЙСА HUD</label>
+                            <div class="theme-buttons-row">
+                                <button class="theme-btn active" data-theme="cyber">⚡ КИБЕРПАНК</button>
+                                <button class="theme-btn" data-theme="space">🌌 БЕЗДНА</button>
+                                <button class="theme-btn" data-theme="matrix">📟 R-DOS ЗЕЛЕНЫЙ</button>
+                            </div>
+                        </div>
+
+                        <!-- Data resets -->
+                        <div class="settings-group border-caution">
+                            <label class="setting-label text-caution">ПОЛНЫЙ СБРОС ДАННЫХ</label>
+                            <p class="setting-hint">Безвозвратно стирает всю память ядра, наноядра, улучшения и локальный кэш.</p>
+                            <button id="reset-progress-btn" class="sys-btn caution">ОЧИСТИТЬ СИСТЕМНЫЙ КЭШ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- MODAL 1: WHEEL SPIN WINNER -->
+    <div id="wheel-win-modal" class="modal-overlay">
+        <div class="modal-box glass-panel neon-border-blue animate-pop">
+            <div class="modal-header">
+                <h3>РЕЗУЛЬТАТ ДЕШИФРОВАНИЯ</h3>
+            </div>
+            <div class="modal-body">
+                <div id="win-prize-icon" class="modal-prize-icon">🎁</div>
+                <h2 id="win-prize-name" class="neon-text-green">НАЗВАНИЕ НАГРАДЫ</h2>
+                <p id="win-prize-desc">Здесь будут отображаться детали дешифрования награды.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="win-close-btn" class="sys-btn fill-neon-blue">ВНЕДРИТЬ ДАННЫЕ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: INTERACTIVE EVENTS CHOOSER -->
+    <div id="choice-modal" class="modal-overlay">
+        <div class="modal-box glass-panel neon-border-green animate-pop">
+            <div class="modal-header">
+                <h3 id="choice-modal-title">КВАНТОВОЕ СОБЫТИЕ</h3>
+            </div>
+            <div class="modal-body">
+                <p id="choice-modal-text">Текст выбора расшифровки.</p>
+            </div>
+            <div class="modal-footer double-btn-row">
+                <button id="choice-btn-1" class="sys-btn fill-neon-green">ВЫБОР 1</button>
+                <button id="choice-btn-2" class="sys-btn fill-neon-blue">ВЫБОР 2</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST ALERTS OVERLAY -->
+    <div id="toast-container" class="toast-overlay"></div>
+
+    <!-- Game scripts loaded in sequential dependency order -->
+    <script src="js/audio.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/upgrades.js"></script>
+    <script src="js/autoclicker.js"></script>
+    <script src="js/achievements.js"></script>
+    <script src="js/daily.js"></script>
+    <script src="js/wheel.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/prestige.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
