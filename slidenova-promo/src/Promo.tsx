@@ -1,8 +1,9 @@
 import React from 'react';
 import {AbsoluteFill, Audio, interpolate, Sequence, staticFile, useCurrentFrame} from 'remotion';
 import {punch} from './beat';
-import {COLORS, MUSIC, SCENE_ORDER, SceneKey, TOTAL_FRAMES, sceneFrames, sceneStart} from './config';
-import {hasMusic} from './assets';
+import {COLORS, MUSIC, SCENE_ORDER, SceneKey, TOTAL_FRAMES, VOICE, sceneFrames, sceneStart} from './config';
+import {hasMusic, hasVoice} from './assets';
+import {VOICE_SEGMENTS} from './voiceSegments';
 import {Grain} from './components/Grain';
 import {ChromaDefs, GlitchBars, glitchAmount, glitchTransform} from './components/Glitch';
 import {SafeZoneGuides} from './components/SafeZone';
@@ -30,6 +31,21 @@ const SCENES: Record<SceneKey, React.FC> = {
 
 const CUTS = SCENE_ORDER.slice(1).map((k) => sceneStart(k));
 
+/** Множитель громкости музыки: плавно проседает, пока звучит голос. */
+const musicDuck = (f: number, voiceOn: boolean) => {
+  if (!voiceOn) return 1;
+  let k = 1;
+  for (const [s, e] of VOICE_SEGMENTS) {
+    const r = VOICE.duckRamp;
+    const v = interpolate(f, [s - r, s, e, e + r * 2], [1, VOICE.musicDuck, VOICE.musicDuck, 1], {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp',
+    });
+    k = Math.min(k, v);
+  }
+  return k;
+};
+
 export type PromoProps = {showSafeZone?: boolean};
 
 export const Promo: React.FC<PromoProps> = ({showSafeZone = false}) => {
@@ -37,6 +53,7 @@ export const Promo: React.FC<PromoProps> = ({showSafeZone = false}) => {
   const g = glitchAmount(frame, CUTS);
   // zoom-punch на каждом бите (кроме финальной чистой плашки)
   const zoom = 1 + punch(frame, 4) * 0.022 * (frame < TOTAL_FRAMES - 45 ? 1 : 0);
+  const voiceOn = hasVoice();
 
   return (
     <AbsoluteFill style={{background: COLORS.deep}}>
@@ -47,10 +64,11 @@ export const Promo: React.FC<PromoProps> = ({showSafeZone = false}) => {
             interpolate(f, [0, 8, TOTAL_FRAMES - MUSIC.fadeOutFrames, TOTAL_FRAMES], [0, MUSIC.volume, MUSIC.volume, 0], {
               extrapolateLeft: 'clamp',
               extrapolateRight: 'clamp',
-            })
+            }) * musicDuck(f, voiceOn)
           }
         />
       ) : null}
+      {voiceOn ? <Audio src={staticFile(VOICE.file)} volume={VOICE.volume} /> : null}
 
       <ChromaDefs amount={g} />
       <AbsoluteFill

@@ -35,6 +35,18 @@ npm run stills -- --guides   # то же, с разметкой safe-зоны
 Все сцены и анимации сидят на сетке **120 BPM** (1 бит = 15 кадров = 0,5 с), поэтому трек на 120 BPM
 ляжет ровно. Громкость и длина затухания в конце: `MUSIC` в `src/config.ts`.
 
+## Озвучка
+
+`public/voice.mp3` — рекламная озвучка, синтезированная офлайн движком RHVoice (голос `aleksandr-hq`)
+и обработанная «под рекламного диктора» (эквалайзер, компрессия, насыщение, нормализация).
+Музыка автоматически приглушается, пока звучит голос (`VOICE` в `src/config.ts`).
+
+- **Текст фраз и тайминги:** список `LINES` в `scripts/make_voiceover.py`.
+- **Другой голос:** `python3 scripts/make_voiceover.py pavel` (мужские: aleksandr-hq, artemiy, mikhail,
+  pavel, yuriy, vitaliy, evgeniy-rus). Скорость и высота: `RATE`, `PITCH` там же.
+- **Своя запись диктора:** положите её в `public/voice.mp3` (длиной с ролик, 52 с) и перерендерьте.
+- Установка RHVoice: `sudo apt install rhvoice rhvoice-russian`, затем `npm run voice`.
+
 ## Скриншоты бота
 
 Положите PNG/JPG в `public/screens/` (берутся по алфавиту):

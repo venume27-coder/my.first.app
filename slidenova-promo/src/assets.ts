@@ -1,5 +1,5 @@
 import {getStaticFiles} from 'remotion';
-import {MUSIC} from './config';
+import {MUSIC, VOICE} from './config';
 
 const files = () => {
   try {
@@ -11,6 +11,9 @@ const files = () => {
 
 /** Есть ли public/music.mp3. Если нет — ролик рендерится без звука. */
 export const hasMusic = () => files().some((f) => f.name === MUSIC.file);
+
+/** Есть ли public/voice.mp3 (озвучка). */
+export const hasVoice = () => files().some((f) => f.name === VOICE.file);
 
 /**
  * Скриншоты пользователя из public/screens/ (png/jpg/webp), по алфавиту.
