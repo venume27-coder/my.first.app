@@ -6,7 +6,7 @@ Config.setVideoImageFormat('jpeg');
 Config.setJpegQuality(92);
 Config.setCodec('h264');
 Config.setPixelFormat('yuv420p');
-Config.setCrf(18);
+Config.setCrf(23);
 Config.setOverwriteOutput(true);
 
 // Если в системе есть готовый Chromium (например, в облачном окружении) — используем его,
