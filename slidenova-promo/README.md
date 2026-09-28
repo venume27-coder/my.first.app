@@ -37,15 +37,15 @@ npm run stills -- --guides   # то же, с разметкой safe-зоны
 
 ## Озвучка
 
-`public/voice.mp3` — рекламная озвучка, синтезированная офлайн движком RHVoice (голос `aleksandr-hq`)
-и обработанная «под рекламного диктора» (эквалайзер, компрессия, насыщение, нормализация).
+`public/voice.mp3` — рекламная озвучка нейросетевым голосом Piper (`ruslan`), синтез офлайн через
+sherpa-onnx. Модель голоса скачивается один раз с GitHub в `scripts/.tts-models/`.
 Музыка автоматически приглушается, пока звучит голос (`VOICE` в `src/config.ts`).
 
 - **Текст фраз и тайминги:** список `LINES` в `scripts/make_voiceover.py`.
-- **Другой голос:** `python3 scripts/make_voiceover.py pavel` (мужские: aleksandr-hq, artemiy, mikhail,
-  pavel, yuriy, vitaliy, evgeniy-rus). Скорость и высота: `RATE`, `PITCH` там же.
+- **Другой голос:** `python3 scripts/make_voiceover.py dmitri` (ruslan, dmitri, denis — мужские; irina — женский).
+  Скорость речи: `SPEED` там же.
 - **Своя запись диктора:** положите её в `public/voice.mp3` (длиной с ролик, 52 с) и перерендерьте.
-- Установка RHVoice: `sudo apt install rhvoice rhvoice-russian`, затем `npm run voice`.
+- Установка: `pip install sherpa-onnx numpy imageio-ffmpeg`, затем `npm run voice` и `npm run build`.
 
 ## Скриншоты бота
 
