@@ -37,15 +37,16 @@ npm run stills -- --guides   # то же, с разметкой safe-зоны
 
 ## Озвучка
 
-`public/voice.mp3` — рекламная озвучка нейросетевым голосом Piper (`ruslan`), синтез офлайн через
-sherpa-onnx. Модель голоса скачивается один раз с GitHub в `scripts/.tts-models/`.
+`public/voice.mp3` — озвучка нейросетевым голосом Piper (`ruslan`), синтез офлайн через onnxruntime.
+Модель голоса скачивается один раз с GitHub в `scripts/.tts-models/`.
 Музыка автоматически приглушается, пока звучит голос (`VOICE` в `src/config.ts`).
 
 - **Текст фраз и тайминги:** список `LINES` в `scripts/make_voiceover.py`.
+- **Ударения:** `python3 scripts/make_voiceover.py --phonemes` покажет фонемы каждой фразы (`ˈ` стоит перед
+  ударным слогом). Неверное ударение правится строкой в `STRESS_FIXES` там же.
 - **Другой голос:** `python3 scripts/make_voiceover.py dmitri` (ruslan, dmitri, denis — мужские; irina — женский).
-  Скорость речи: `SPEED` там же.
 - **Своя запись диктора:** положите её в `public/voice.mp3` (длиной с ролик, 52 с) и перерендерьте.
-- Установка: `pip install sherpa-onnx numpy imageio-ffmpeg`, затем `npm run voice` и `npm run build`.
+- Установка: `pip install onnxruntime piper-phonemize numpy imageio-ffmpeg`, затем `npm run voice` и `npm run build`.
 
 ## Скриншоты бота
 

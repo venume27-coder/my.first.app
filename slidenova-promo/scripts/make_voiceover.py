@@ -1,34 +1,42 @@
 """Рекламная озвучка ролика → public/voice.mp3 + src/voiceSegments.ts
 
-Голос синтезируется офлайн нейросетевой моделью Piper (через sherpa-onnx).
-Модель скачивается один раз с GitHub в scripts/.tts-models/. Затем голос
-мягко обрабатывается: лёгкий эквалайзер, компрессия, нормализация громкости.
-Каждая фраза ставится на свою сцену (время — в битах, как в src/config.ts),
-а если не помещается в слот — чуть ускоряется.
+Голос — нейросетевая модель Piper (ONNX), запускается офлайн через onnxruntime.
+Текст переводится в фонемы (piper-phonemize / espeak-ng), затем фонемы
+правятся словарём STRESS_FIXES: так исправляются неверные ударения и
+произношение, которые автоматический фонемизатор ставит неправильно.
+Модель скачивается один раз с GitHub в scripts/.tts-models/.
 
-    pip install sherpa-onnx numpy imageio-ffmpeg
-    python scripts/make_voiceover.py [голос]
+    pip install onnxruntime piper-phonemize numpy imageio-ffmpeg
+    python scripts/make_voiceover.py [голос]          # собрать озвучку
+    python scripts/make_voiceover.py --phonemes       # показать фонемы фраз (для проверки ударений)
 
-Голоса: ruslan (мужской, по умолчанию), dmitri (мужской), denis (мужской), irina (женский)
+Голоса: ruslan (мужской, по умолчанию), dmitri, denis (мужские), irina (женский)
 """
-import glob
+import json
 import os
 import subprocess
 import sys
 import tarfile
-import tempfile
 import urllib.request
 
 import imageio_ffmpeg
 import numpy as np
-import sherpa_onnx
+import onnxruntime as ort
+from piper_phonemize import phonemize_espeak
 
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 SR = 48000
 FPS = 30
 BEAT = 0.5  # 120 BPM
-VOICE = sys.argv[1] if len(sys.argv) > 1 else 'ruslan'
-SPEED = 1.08  # чуть бодрее обычной речи
+ARGS = [a for a in sys.argv[1:] if not a.startswith('--')]
+VOICE = ARGS[0] if ARGS else 'ruslan'
+SHOW_PHONEMES = '--phonemes' in sys.argv
+
+# Параметры модели: меньше шум → ровнее и естественнее интонация, без «акцента»
+LENGTH_SCALE = 0.93  # < 1 — чуть быстрее
+NOISE_SCALE = 0.45
+NOISE_W = 0.5
+SENTENCE_PAUSE = 0.12  # с
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -41,7 +49,7 @@ STARTS = np.concatenate([[0], np.cumsum(SCENES)[:-1]]) * BEAT
 TOTAL = sum(SCENES) * BEAT
 OUTRO = (sum(SCENES) - 3) * BEAT
 
-# (начало, секунд; максимальная длина слота; текст). Имена — фонетически.
+# (начало, секунд; максимальная длина слота; текст)
 LINES = [
     (STARTS[0] + 0.15, 2.7, 'Презентация к завтра? А слайдов — ноль?'),
     (STARTS[1] + 0.25, 3.6, 'Спокойно! Есть решение. Слайд Нова Бот!'),
@@ -55,18 +63,32 @@ LINES = [
     (OUTRO + 0.15, 1.3, 'Слайд Нова Бот!'),
 ]
 
+# Исправления фонем: (что выдал фонемизатор, как правильно).
+# ˈ — ударение перед ударным слогом.
+STRESS_FIXES = [
+    ('tʲiɭʲˈeɡrʌmʲi', 'tʲiɭʲiɡrˈɑmʲi'),  # Телегра́ме (не «Теле́граме»)
+    ('tʲiɭʲˈeɡrʌm', 'tʲiɭʲiɡrˈɑm'),  # Телегра́м
+    ('pˈot tvˈoj', 'pʌt tvˈoj'),  # «под» безударное
+    ('prʲiʑintˈɑtsy', 'prʲizʲintˈɑtsy'),  # презента́ция: «з», а не «ж»
+    ('"', ''),  # мусорный символ фонемизатора («плюс», «включается»)
+    ('ˌɪɭʲɪ', 'ɪɭʲɪ'),  # «или» без лишнего побочного ударения
+    ('nˈova bˈot', 'nˈovʌ bˈot'),  # Но́ва Бот — редуцированное «а»
+    ('bʲˈiʑnɛs', 'bʲˈiznʲɪs'),  # би́знес: «з», а не «ж»
+    ('ˈɪmʲidʃ', 'ˈimʲitʃ'),  # и́мидж
+]
+
 # Мягкая обработка: чистый, тёплый, разборчивый голос
 CHAIN = ','.join([
     'highpass=f=70',
-    'equalizer=f=250:t=q:w=1.2:g=-1.5',  # убрать «бубнёж»
-    'equalizer=f=2800:t=q:w=1:g=2',  # разборчивость
-    'equalizer=f=7000:t=q:w=1:g=-1.5',  # смягчить сибилянты
+    'equalizer=f=250:t=q:w=1.2:g=-1.5',
+    'equalizer=f=2800:t=q:w=1:g=2',
+    'equalizer=f=7000:t=q:w=1:g=-1.5',
     'acompressor=threshold=-20dB:ratio=2.5:attack=10:release=150:makeup=3',
     'alimiter=limit=0.95',
 ])
 
 
-def model_dir(voice):
+def model_paths(voice):
     d = os.path.join(MODELS, f'vits-piper-ru_RU-{voice}-medium')
     if not os.path.isdir(d):
         os.makedirs(MODELS, exist_ok=True)
@@ -76,26 +98,49 @@ def model_dir(voice):
         with tarfile.open(archive) as t:
             t.extractall(MODELS)
         os.remove(archive)
-    return d
+    return os.path.join(d, f'ru_RU-{voice}-medium.onnx'), os.path.join(d, f'ru_RU-{voice}-medium.onnx.json')
 
 
-def make_tts(voice):
-    d = model_dir(voice)
-    cfg = sherpa_onnx.OfflineTtsConfig(
-        model=sherpa_onnx.OfflineTtsModelConfig(
-            vits=sherpa_onnx.OfflineTtsVitsModelConfig(
-                model=glob.glob(os.path.join(d, '*.onnx'))[0],
-                tokens=os.path.join(d, 'tokens.txt'),
-                data_dir=os.path.join(d, 'espeak-ng-data'),
-            ),
-            num_threads=4,
-        )
-    )
-    return sherpa_onnx.OfflineTts(cfg)
+def phonemes(text):
+    """Фонемы по предложениям, с применёнными исправлениями ударений."""
+    out = []
+    for sent in phonemize_espeak(text, 'ru'):
+        s = ''.join(sent)
+        for wrong, right in STRESS_FIXES:
+            s = s.replace(wrong, right)
+        out.append(s)
+    return out
+
+
+class Piper:
+    def __init__(self, voice):
+        onnx, cfg = model_paths(voice)
+        conf = json.load(open(cfg, encoding='utf-8'))
+        self.sr = conf['audio']['sample_rate']
+        self.ids = conf['phoneme_id_map']
+        self.sess = ort.InferenceSession(onnx, providers=['CPUExecutionProvider'])
+
+    def to_ids(self, ph):
+        ids = list(self.ids['^']) + list(self.ids['_'])
+        for c in ph:
+            if c in self.ids:
+                ids += self.ids[c] + self.ids['_']
+        return ids + list(self.ids['$'])
+
+    def speak(self, text):
+        parts = []
+        for ph in phonemes(text):
+            ids = np.array([self.to_ids(ph)], dtype=np.int64)
+            audio = self.sess.run(None, {
+                'input': ids,
+                'input_lengths': np.array([ids.shape[1]], dtype=np.int64),
+                'scales': np.array([NOISE_SCALE, LENGTH_SCALE, NOISE_W], dtype=np.float32),
+            })[0].squeeze()
+            parts += [audio.astype(np.float32), np.zeros(int(SENTENCE_PAUSE * self.sr), np.float32)]
+        return np.concatenate(parts[:-1])
 
 
 def process(samples, sr, tempo):
-    """Ресемплинг, темп и обработка через ffmpeg."""
     pcm = (np.clip(samples, -1, 1) * 32767).astype('<i2').tobytes()
     raw = subprocess.run(
         [FF, '-loglevel', 'error', '-f', 's16le', '-ar', str(sr), '-ac', '1', '-i', '-',
@@ -111,15 +156,20 @@ def trim_silence(x, sr, thr=0.01):
     return x[max(0, idx[0] - int(0.02 * sr)): min(len(x), idx[-1] + int(0.1 * sr))]
 
 
-tts = make_tts(VOICE)
+if SHOW_PHONEMES:
+    for _, _, text in LINES:
+        print(text, '\n   ', ' | '.join(phonemes(text)))
+    sys.exit()
+
+tts = Piper(VOICE)
 track = np.zeros(int((TOTAL + 1) * SR), np.float32)
 segments = []
 for start, slot, text in LINES:
-    audio = tts.generate(text, sid=0, speed=SPEED)
-    raw = trim_silence(np.array(audio.samples, np.float32), audio.sample_rate)
-    dur = len(raw) / audio.sample_rate
+    raw = trim_silence(tts.speak(text), tts.sr)
+    raw /= max(np.max(np.abs(raw)), 1e-6) / 0.9
+    dur = len(raw) / tts.sr
     tempo = min(1.3, max(1.0, dur / slot))
-    clip = trim_silence(process(raw, audio.sample_rate, tempo), SR)
+    clip = trim_silence(process(raw, tts.sr, tempo), SR)
     a = int(start * SR)
     b = min(len(track), a + len(clip))
     track[a:b] += clip[: b - a]
@@ -131,10 +181,9 @@ track = track[: int(TOTAL * SR)]
 track *= 0.95 / (np.max(np.abs(track)) + 1e-9)
 
 out = os.path.join(ROOT, 'public', 'voice.mp3')
-with tempfile.TemporaryDirectory():
-    subprocess.run([FF, '-y', '-loglevel', 'error', '-f', 's16le', '-ar', str(SR), '-ac', '1', '-i', '-',
-                    '-af', 'loudnorm=I=-15:TP=-1.5:LRA=9', '-ar', str(SR), '-c:a', 'libmp3lame', '-b:a', '192k', out],
-                   input=(track * 32767).astype('<i2').tobytes(), check=True)
+subprocess.run([FF, '-y', '-loglevel', 'error', '-f', 's16le', '-ar', str(SR), '-ac', '1', '-i', '-',
+                '-af', 'loudnorm=I=-15:TP=-1.5:LRA=9', '-ar', str(SR), '-c:a', 'libmp3lame', '-b:a', '192k', out],
+               input=(track * 32767).astype('<i2').tobytes(), check=True)
 
 ts = os.path.join(ROOT, 'src', 'voiceSegments.ts')
 with open(ts, 'w', encoding='utf-8') as f:
